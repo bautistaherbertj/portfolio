@@ -337,24 +337,213 @@ ORDER BY
 
 -- 8. Total Time Spent by Each Rider Group Per Month:
 -- SQL Query to calculate total time spent per month by rider group
+SELECT
+	member_casual,
+	month,
+	(SUM(ride_length_seconds))/(60*60) AS Total_ride_length_hour
+FROM
+	cyclistic_bike_share.dbo.Cyclistic_TripData_2022
+GROUP BY 
+	member_casual,
+	month
+ORDER BY
+	CASE 
+		WHEN month = 'January' THEN 1
+		WHEN month = 'February' THEN 2
+		WHEN month = 'March' THEN 3
+		WHEN month = 'April' THEN 4
+		WHEN month = 'May' THEN 5
+		WHEN month = 'June' THEN 6
+		WHEN month = 'July' THEN 7
+		WHEN month = 'August' THEN 8
+		WHEN month = 'September' THEN 9
+		WHEN month = 'October' THEN 10
+		WHEN month = 'November' THEN 11
+		WHEN month = 'December' THEN 12
+	END,
+	member_casual
+;
 
 -- 9. Annual Time Spent Percentage by Each Rider Group:
 -- SQL Query to calculate percentage of total time spent by rider group
+SELECT
+	member_casual,
+	(SUM(ride_length_seconds))/(60*60) AS Total_ride_length_hours
+FROM
+	cyclistic_bike_share.dbo.Cyclistic_TripData_2022
+GROUP BY 
+	member_casual
+;
 
 -- 10. Total Number of Rides by Each Rider Group Per Hour:
 -- SQL Query to count total rides per hour by rider group
+SELECT
+	hour_of_day,
+	member_casual,
+	COUNT(member_casual) AS Total_rides
+FROM
+	cyclistic_bike_share.dbo.Cyclistic_TripData_2022 
+GROUP BY 
+	member_casual,
+	hour_of_day
+ORDER BY
+	hour_of_day,
+	member_casual,	
+	Total_rides
+;
 
 -- 11. Total Number of Rides by Each Rider Group Per Day:
 -- SQL Query to count total rides per day by rider group
+SELECT
+	day_of_week,
+	member_casual,
+	COUNT(member_casual) AS Total_rides
+FROM
+	cyclistic_bike_share.dbo.Cyclistic_TripData_2022 
+GROUP BY 
+	member_casual,
+	day_of_week
+ORDER BY
+	CASE 
+		WHEN day_of_week = 'Monday' THEN 1
+		WHEN day_of_week = 'Tuesday' THEN 2
+		WHEN day_of_week = 'Wednesday' THEN 3
+		WHEN day_of_week = 'Thursday' THEN 4
+		WHEN day_of_week = 'Friday' THEN 5
+		WHEN day_of_week = 'Saturday' THEN 6
+		WHEN day_of_week = 'Sunday' THEN 7
+	END,
+    member_casual
+;
 
 -- 12. Total Number of Rides by Each Rider Group Per Month:
 -- SQL Query to count total rides per month by rider group
+SELECT
+	month,
+	member_casual,
+	COUNT(member_casual) AS Total_rides_daily
+FROM
+	cyclistic_bike_share.dbo.Cyclistic_TripData_2022
+GROUP BY
+	month,
+	member_casual
+ORDER BY
+		CASE 
+		WHEN month = 'January' THEN 1
+		WHEN month = 'February' THEN 2
+		WHEN month = 'March' THEN 3
+		WHEN month = 'April' THEN 4
+		WHEN month = 'May' THEN 5
+		WHEN month = 'June' THEN 6
+		WHEN month = 'July' THEN 7
+		WHEN month = 'August' THEN 8
+		WHEN month = 'September' THEN 9
+		WHEN month = 'October' THEN 10
+		WHEN month = 'November' THEN 11
+		WHEN month = 'December' THEN 12
+	END,
+	member_casual
+;
 
 -- 13. Annual Total Rides Percentage by Each Rider Group:
 -- SQL Query to calculate percentage of total rides by rider groups
+SELECT 
+	member_casual,
+	COUNT(*) AS number_of_rides
+FROM 
+	Cyclistic_TripData_2022
+GROUP BY 
+	member_casual
+	;
 
 -- 14. Top 5 Routes for Each Group:
 --SQL Query to find the top 5 routes per month for members.
+SELECT
+	*
+FROM 
+	( SELECT
+		month,
+		member_casual,
+		start_station_name,
+		end_station_name,
+		COUNT(*) AS Total_rides_monthly,
+		ROW_NUMBER() OVER(PARTITION BY member_casual, month ORDER BY COUNT(member_casual)DESC
+			 ) AS route_rank
+	FROM
+		cyclistic_bike_share.dbo.Cyclistic_TripData_2022 
+	WHERE
+		 start_station_name IS NOT NULL
+		 AND end_station_name IS NOT NULL
+	GROUP BY
+		month,
+		member_casual,
+		start_station_name,
+		end_station_name
+	) ranks
+WHERE 
+	route_rank <=5 
+	AND member_casual = 'member'
+	
+ORDER BY 
+CASE 
+		WHEN month = 'January' THEN 1
+		WHEN month = 'February' THEN 2
+		WHEN month = 'March' THEN 3
+		WHEN month = 'April' THEN 4
+		WHEN month = 'May' THEN 5
+		WHEN month = 'June' THEN 6
+		WHEN month = 'July' THEN 7
+		WHEN month = 'August' THEN 8
+		WHEN month = 'September' THEN 9
+		WHEN month = 'October' THEN 10
+		WHEN month = 'November' THEN 11
+		WHEN month = 'December' THEN 12
+	END,
+	Total_rides_monthly DESC
+;
 
 -- Top 5 routes for Casual Riders:
--- SQL Query to find  top 5 routes per month for casual riders
+-- SQL Query to find  the top 5 routes per month for casual riders
+SELECT
+	*
+FROM 
+	( SELECT
+		month,
+		member_casual,
+		start_station_name,
+		end_station_name,
+		COUNT(*) AS Total_rides_monthly,
+		ROW_NUMBER() OVER(PARTITION BY member_casual, month ORDER BY COUNT(member_casual)DESC
+			 ) AS route_rank
+	FROM
+		cyclistic_bike_share.dbo.Cyclistic_TripData_2022 
+	WHERE
+		 start_station_name IS NOT NULL
+		 AND end_station_name IS NOT NULL
+	GROUP BY
+		month,
+		member_casual,
+		start_station_name,
+		end_station_name
+	) ranks
+WHERE 
+	route_rank <=5 
+	AND member_casual = 'casual'
+	
+ORDER BY 
+CASE 
+		WHEN month = 'January' THEN 1
+		WHEN month = 'February' THEN 2
+		WHEN month = 'March' THEN 3
+		WHEN month = 'April' THEN 4
+		WHEN month = 'May' THEN 5
+		WHEN month = 'June' THEN 6
+		WHEN month = 'July' THEN 7
+		WHEN month = 'August' THEN 8
+		WHEN month = 'September' THEN 9
+		WHEN month = 'October' THEN 10
+		WHEN month = 'November' THEN 11
+		WHEN month = 'December' THEN 12
+	END,
+	Total_rides_monthly DESC
+;
