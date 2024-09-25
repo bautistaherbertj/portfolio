@@ -3,13 +3,6 @@
 
 -- PROCESS PHASE
 
--- Tool
--- SQL was selected for its ability to efficiently handle large volumes of data, 
--- providing robust querying and data management capabilities. 
--- This ensures optimal performance and scalability for the analysis.
-
--- Data Manipulation and Cleaning
-
 -- 1. Data Format Verification:
 -- Data was converted to .xlsx format for proper import into SQL.
 
@@ -135,6 +128,20 @@ SET
 	ride_length_seconds = DATEDIFF(SECOND, started_at, ended_at)
 ;
 
+-- SQL Query for creating a column for the hour of the day:
+ALTER TABLE
+	cyclistic_bike_share.dbo.Cyclistic_TripData_2022
+ADD
+	hour_of_day nvarchar(50)
+;
+
+-- SQL Query for populating the hour of the day column:
+UPDATE 
+	cyclistic_bike_share.dbo.Cyclistic_TripData_2022
+SET 
+	hour_of_day = FORMAt(started_at, 'HH')
+;
+
 -- SQL Query for creating a column for the day of the week:
 ALTER TABLE 
 	cyclistic_bike_share.dbo.Cyclistic_TripData_2022
@@ -142,47 +149,58 @@ ADD
 	day_of_week nvarchar(50)
 ;
 
--- SQL Query for populating the day of the week:
+-- SQL Query for populating the day of the week column:
 UPDATE
 	cyclistic_bike_share.dbo.Cyclistic_TripData_2022
 SET 
 	day_of_week = FORMAt(started_at, 'dddd')
 ;
 
--- SQL Query for creating a column for the day of the week:
+-- SQL Query for creating a column for the month:
 ALTER TABLE 
 	cyclistic_bike_share.dbo.Cyclistic_TripData_2022
 ADD 
 	month nvarchar(50)
 ;
 
--- Add columns for ride_length_seconds, day_of_week, month, hour_of_day:
-ALTER TABLE full_year_data
-ADD COLUMN ride_length_seconds INT,
-ADD COLUMN day_of_week VARCHAR(10),
-ADD COLUMN month VARCHAR(10),
-ADD COLUMN hour_of_day INT;
-
--- Populate these columns:
-UPDATE full_year_data
-SET ride_length_seconds = TIMESTAMPDIFF(SECOND, started_at, ended_at),
-    day_of_week = DAYNAME(started_at),
-    month = MONTHNAME(started_at),
-    hour_of_day = HOUR(started_at);
+-- SQL Query for populating the month column:
+UPDATE 
+	cyclistic_bike_share.dbo.Cyclistic_TripData_2022
+SET 
+	month = FORMAt(started_at, 'MMMM')
+;
 
 -- 7. Data Validation:
--- Remove invalid entries where ride_length_seconds <= 0 or ride exceeds 24 hours.
+-- Remove invalid entries where ride_length_seconds <= 0 or the ride exceeds 24 hours.
 
--- Validate ride length:
-DELETE FROM full_year_data 
-WHERE ride_length_seconds <= 0 OR ride_length_seconds > 86400;
+-- SQL Query for checking if there is any ride_length_seconds less than or equal to 0
+SELECT
+	 COUNT(ride_length_seconds)
+FROM
+	cyclistic_bike_share.dbo.Cyclistic_TripData_2022
+WHERE
+	ride_length_seconds <= 0
+;
+
+-- SQL Query for checking if any rides lasted longer than a day (24 hours).
+SELECT
+	 COUNT(ride_length_seconds)
+FROM
+	cyclistic_bike_share.dbo.Cyclistic_TripData_2022
+WHERE
+	ride_length_seconds >= 24*60*60
+;
+
+-- SQL Query for deleting rows where ride_length_seconds ≤ 0 or the ride exceeds 24 hours.
+DELETE
+FROM
+	cyclistic_bike_share.dbo.Cyclistic_TripData_2022
+WHERE
+	ride_length_seconds <= 0 
+	OR ride_length_seconds >= 24*60*60
+;
 
 -- ANALYZE PHASE
-
--- Tool
--- SQL is used in the analyze phase for its efficiency in handling large datasets.
-
--- Data Analysis
 
 -- 1. Preferred Types of Bikes for Each Rider Group Over the Year:
 SELECT member_casual, rideable_type, COUNT(*) AS bike_count
