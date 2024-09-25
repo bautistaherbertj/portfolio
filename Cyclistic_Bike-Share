@@ -202,86 +202,159 @@ WHERE
 
 -- ANALYZE PHASE
 
--- 1. Preferred Types of Bikes for Each Rider Group Over the Year:
-SELECT member_casual, rideable_type, COUNT(*) AS bike_count
-FROM full_year_data
-GROUP BY member_casual, rideable_type;
+-- 1. Preferred Types of Bikes for Each Rider Groups Over the Year:
+-- SQL Query to count preferred bike types by rider group
+SELECT
+	member_casual,
+	rideable_type,
+	COUNT(rideable_type) number_of_rides
+FROM
+	cyclistic_bike_share.dbo.Cyclistic_TripData_2022
+GROUP BY
+	member_casual,
+	rideable_type
+;
 
--- 2. Average Ride Length by Each Rider Group Per Hour:
-SELECT member_casual, hour_of_day, AVG(ride_length_seconds) AS avg_ride_length
-FROM full_year_data
-GROUP BY member_casual, hour_of_day;
+-- 2. Average Ride Length by Each Rider Groups Per Hour:
+-- SQL Query to calculate average ride length per hour by rider group
+SELECT
+	member_casual,
+	hour_of_day,
+	AVG(ride_length_seconds)/60 as avg_ride_length_min
+FROM
+	cyclistic_bike_share.dbo.Cyclistic_TripData_2022
+GROUP BY 
+	member_casual,
+	hour_of_day
+ORDER BY
+	hour_of_day,
+	member_casual
+;
 
--- 3. Average Ride Length by Each Rider Group Per Day:
-SELECT member_casual, day_of_week, AVG(ride_length_seconds) AS avg_ride_length
-FROM full_year_data
-GROUP BY member_casual, day_of_week;
+-- 3. Average Ride Length by Each Rider Groups Per Day:
+-- SQL Query to calculate average ride length per day by rider group
+SELECT
+	member_casual,
+	day_of_week,
+	AVG(ride_length_seconds)/60 as avg_ride_length_min
+FROM
+	cyclistic_bike_share.dbo.Cyclistic_TripData_2022
+GROUP BY 
+	member_casual,
+	day_of_week
+ORDER BY
+	CASE 
+		WHEN day_of_week = 'Monday' THEN 1
+		WHEN day_of_week = 'Tuesday' THEN 2
+		WHEN day_of_week = 'Wednesday' THEN 3
+		WHEN day_of_week = 'Thursday' THEN 4
+		WHEN day_of_week = 'Friday' THEN 5
+		WHEN day_of_week = 'Saturday' THEN 6
+		WHEN day_of_week = 'Sunday' THEN 7
+	END,
+	member_casual
+;
 
 -- 4. Average Ride Length by Each Rider Group Per Month:
-SELECT member_casual, month, AVG(ride_length_seconds) AS avg_ride_length
-FROM full_year_data
-GROUP BY member_casual, month;
+-- SQL Query to calculate average ride length per month by rider group
+SELECT
+	member_casual,
+	month,
+	AVG(ride_length_seconds)/60 as avg_ride_length_min
+FROM
+	cyclistic_bike_share.dbo.Cyclistic_TripData_2022
+GROUP BY 
+	member_casual,
+	month
+ORDER BY
+	CASE 
+		WHEN month = 'January' THEN 1
+		WHEN month = 'February' THEN 2
+		WHEN month = 'March' THEN 3
+		WHEN month = 'April' THEN 4
+		WHEN month = 'May' THEN 5
+		WHEN month = 'June' THEN 6
+		WHEN month = 'July' THEN 7
+		WHEN month = 'August' THEN 8
+		WHEN month = 'September' THEN 9
+		WHEN month = 'October' THEN 10
+		WHEN month = 'November' THEN 11
+		WHEN month = 'December' THEN 12
+	END,
+	member_casual
+;
 
 -- 5. Annual Average Ride Length by Each Rider Group:
-SELECT member_casual, AVG(ride_length_seconds) AS avg_ride_length
-FROM full_year_data
-GROUP BY member_casual;
+-- SQL Query to calculate annual average ride length by rider group
+SELECT
+	member_casual,
+	AVG(ride_length_seconds)/60 as avg_ride_length_min
+FROM
+	cyclistic_bike_share.dbo.Cyclistic_TripData_2022
+GROUP BY 
+	member_casual
+;
 
 -- 6. Total Time Spent by Each Rider Group Per Hour:
-SELECT member_casual, hour_of_day, SUM(ride_length_seconds) AS total_time
-FROM full_year_data
-GROUP BY member_casual, hour_of_day;
+-- SQL Query to calculate total time spent per hour by rider group
+SELECT
+	member_casual,
+	hour_of_day,
+	(SUM(ride_length_seconds))/(60*60) AS Total_ride_length_hour
+FROM
+	cyclistic_bike_share.dbo.Cyclistic_TripData_2022
+GROUP BY 
+	member_casual,
+	hour_of_day
+ORDER BY
+	hour_of_day,
+	member_casual
+;
 
 -- 7. Total Time Spent by Each Rider Group Per Day:
-SELECT member_casual, day_of_week, SUM(ride_length_seconds) AS total_time
-FROM full_year_data
-GROUP BY member_casual, day_of_week;
+-- SQL Query to calculate total time spent per day by rider group
+	SELECT
+		member_casual,
+		day_of_week,
+		(SUM(ride_length_seconds))/(60*60) AS Total_ride_length_hour
+	FROM
+		cyclistic_bike_share.dbo.Cyclistic_TripData_2022
+	GROUP BY 
+		member_casual,
+		day_of_week
+	ORDER BY
+		CASE 
+			WHEN day_of_week = 'Monday' THEN 1
+			WHEN day_of_week = 'Tuesday' THEN 2
+			WHEN day_of_week = 'Wednesday' THEN 3
+			WHEN day_of_week = 'Thursday' THEN 4
+			WHEN day_of_week = 'Friday' THEN 5
+			WHEN day_of_week = 'Saturday' THEN 6
+			WHEN day_of_week = 'Sunday' THEN 7
+		END,
+		member_casual
+	;
 
 -- 8. Total Time Spent by Each Rider Group Per Month:
-SELECT member_casual, month, SUM(ride_length_seconds) AS total_time
-FROM full_year_data
-GROUP BY member_casual, month;
+-- SQL Query to calculate total time spent per month by rider group
 
 -- 9. Annual Time Spent Percentage by Each Rider Group:
-SELECT member_casual, 
-       SUM(ride_length_seconds) / (SELECT SUM(ride_length_seconds) FROM full_year_data) * 100 AS percentage_time
-FROM full_year_data
-GROUP BY member_casual;
+-- SQL Query to calculate percentage of total time spent by rider group
 
 -- 10. Total Number of Rides by Each Rider Group Per Hour:
-SELECT member_casual, hour_of_day, COUNT(*) AS total_rides
-FROM full_year_data
-GROUP BY member_casual, hour_of_day;
+-- SQL Query to count total rides per hour by rider group
 
 -- 11. Total Number of Rides by Each Rider Group Per Day:
-SELECT member_casual, day_of_week, COUNT(*) AS total_rides
-FROM full_year_data
-GROUP BY member_casual, day_of_week;
+-- SQL Query to count total rides per day by rider group
 
 -- 12. Total Number of Rides by Each Rider Group Per Month:
-SELECT member_casual, month, COUNT(*) AS total_rides
-FROM full_year_data
-GROUP BY member_casual, month;
+-- SQL Query to count total rides per month by rider group
 
 -- 13. Annual Total Rides Percentage by Each Rider Group:
-SELECT member_casual, 
-       COUNT(*) / (SELECT COUNT(*) FROM full_year_data) * 100 AS percentage_rides
-FROM full_year_data
-GROUP BY member_casual;
+-- SQL Query to calculate percentage of total rides by rider groups
 
 -- 14. Top 5 Routes for Each Group:
--- Top 5 routes for Members:
-SELECT start_station_name, end_station_name, COUNT(*) AS route_count
-FROM full_year_data
-WHERE member_casual = 'member'
-GROUP BY start_station_name, end_station_name
-ORDER BY route_count DESC
-LIMIT 5;
+--SQL Query to find the top 5 routes per month for members.
 
 -- Top 5 routes for Casual Riders:
-SELECT start_station_name, end_station_name, COUNT(*) AS route_count
-FROM full_year_data
-WHERE member_casual = 'casual'
-GROUP BY start_station_name, end_station_name
-ORDER BY route_count DESC
-LIMIT 5;
+-- SQL Query to find  top 5 routes per month for casual riders
