@@ -84,7 +84,7 @@ FROM
 	cyclistic_bike_share.dbo.Cyclistic_TripData_2022
 ;
 
--- SQL Query for checking duplicates in the ride_id column column:
+-- SQL Query for checking duplicates in the ride_id column:
 SELECT
 	ride_id,
 	COUNT(*) as duplicate_count
@@ -99,7 +99,7 @@ HAVING
 -- 5. Null Value Management:
 -- Analyze and retain records with essential data, despite null values in station columns.
 
--- Check for null values in all columns:
+-- SQL Query for checking null values in all columns:
 SELECT
    SUM(CASE WHEN ride_id IS NULL THEN 1 ELSE 0 END) AS ride_id_null_count,
    SUM(CASE WHEN rideable_type IS NULL THEN 1 ELSE 0 END) AS rideable_type_null_count,
@@ -119,7 +119,42 @@ FROM
 ;
 
 -- 6. New Column Creation:
--- Create new columns for enhanced analysis.
+-- Create new columns for enhanced analysis and populate them.
+
+-- SQL Query for creating a column for trip duration in seconds:
+ALTER TABLE 
+	cyclistic_bike_share.dbo.Cyclistic_TripData_2022
+ADD 
+	ride_length_seconds float
+;
+
+-- SQL Query for populating the trip duration column in seconds:
+UPDATE 
+	cyclistic_bike_share.dbo.Cyclistic_TripData_2022
+SET 
+	ride_length_seconds = DATEDIFF(SECOND, started_at, ended_at)
+;
+
+-- SQL Query for creating a column for the day of the week:
+ALTER TABLE 
+	cyclistic_bike_share.dbo.Cyclistic_TripData_2022
+ADD	
+	day_of_week nvarchar(50)
+;
+
+-- SQL Query for populating the day of the week:
+UPDATE
+	cyclistic_bike_share.dbo.Cyclistic_TripData_2022
+SET 
+	day_of_week = FORMAt(started_at, 'dddd')
+;
+
+-- SQL Query for creating a column for the day of the week:
+ALTER TABLE 
+	cyclistic_bike_share.dbo.Cyclistic_TripData_2022
+ADD 
+	month nvarchar(50)
+;
 
 -- Add columns for ride_length_seconds, day_of_week, month, hour_of_day:
 ALTER TABLE full_year_data
