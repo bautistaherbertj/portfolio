@@ -547,3 +547,6 @@ CASE
 	END,
 	Total_rides_monthly DESC
 ;
+
+-- This document provides a guide detailing the processes and SQL scripts used during the data process and analysis phases. 
+-- It aims to facilitate a clear understanding of the steps taken to derive insights from the Cyclistic bike-share dataset.
