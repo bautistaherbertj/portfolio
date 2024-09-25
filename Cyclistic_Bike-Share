@@ -1,0 +1,168 @@
+-- This SQL script includes both the PROCESS PHASE and the ANALYZE PHASE.
+
+-- PROCESS PHASE
+
+-- Tool
+-- SQL was selected for its ability to efficiently handle large volumes of data, 
+-- providing robust querying and data management capabilities. 
+-- This ensures optimal performance and scalability for the analysis.
+
+-- Data Manipulation and Cleaning
+
+-- 1. Data Format Verification:
+-- Data was converted to .xlsx format for proper import into SQL.
+
+-- 2. Column and Data Type Verification:
+-- Verify column names and data types during the file upload process.
+-- We review column names, types, and null allowances across 12 monthly datasets.
+
+-- SQL Query for column verification:
+SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE 
+FROM INFORMATION_SCHEMA.COLUMNS 
+WHERE TABLE_NAME = 'your_table_name';
+
+-- 3. Data Consolidation:
+-- Merge the 12 monthly tables into a single table.
+
+-- SQL Query for data consolidation:
+INSERT INTO full_year_data
+SELECT * FROM january_data
+UNION ALL 
+SELECT * FROM february_data
+-- repeat UNION ALL for all 12 months;
+
+-- 4. Error Detection:
+-- Verify categorical values and check for duplicates.
+
+-- Check distinct categories for rideable_type and member_casual:
+SELECT DISTINCT rideable_type, member_casual FROM full_year_data;
+
+-- Check for duplicates in the ride_id column:
+SELECT ride_id, COUNT(*)
+FROM full_year_data
+GROUP BY ride_id
+HAVING COUNT(*) > 1;
+
+-- 5. Null Value Management:
+-- Analyze and retain records with essential data, despite null values in station columns.
+
+-- Check for nulls in station columns:
+SELECT COUNT(*) AS null_count
+FROM full_year_data
+WHERE start_station_name IS NULL OR start_station_id IS NULL 
+   OR end_station_name IS NULL OR end_station_id IS NULL;
+
+-- 6. New Column Creation:
+-- Create new columns for enhanced analysis.
+
+-- Add columns for ride_length_seconds, day_of_week, month, hour_of_day:
+ALTER TABLE full_year_data
+ADD COLUMN ride_length_seconds INT,
+ADD COLUMN day_of_week VARCHAR(10),
+ADD COLUMN month VARCHAR(10),
+ADD COLUMN hour_of_day INT;
+
+-- Populate these columns:
+UPDATE full_year_data
+SET ride_length_seconds = TIMESTAMPDIFF(SECOND, started_at, ended_at),
+    day_of_week = DAYNAME(started_at),
+    month = MONTHNAME(started_at),
+    hour_of_day = HOUR(started_at);
+
+-- 7. Data Validation:
+-- Remove invalid entries where ride_length_seconds <= 0 or ride exceeds 24 hours.
+
+-- Validate ride length:
+DELETE FROM full_year_data 
+WHERE ride_length_seconds <= 0 OR ride_length_seconds > 86400;
+
+-- ANALYZE PHASE
+
+-- Tool
+-- SQL is used in the analyze phase for its efficiency in handling large datasets.
+
+-- Data Analysis
+
+-- 1. Preferred Types of Bikes for Each Rider Group Over the Year:
+SELECT member_casual, rideable_type, COUNT(*) AS bike_count
+FROM full_year_data
+GROUP BY member_casual, rideable_type;
+
+-- 2. Average Ride Length by Each Rider Group Per Hour:
+SELECT member_casual, hour_of_day, AVG(ride_length_seconds) AS avg_ride_length
+FROM full_year_data
+GROUP BY member_casual, hour_of_day;
+
+-- 3. Average Ride Length by Each Rider Group Per Day:
+SELECT member_casual, day_of_week, AVG(ride_length_seconds) AS avg_ride_length
+FROM full_year_data
+GROUP BY member_casual, day_of_week;
+
+-- 4. Average Ride Length by Each Rider Group Per Month:
+SELECT member_casual, month, AVG(ride_length_seconds) AS avg_ride_length
+FROM full_year_data
+GROUP BY member_casual, month;
+
+-- 5. Annual Average Ride Length by Each Rider Group:
+SELECT member_casual, AVG(ride_length_seconds) AS avg_ride_length
+FROM full_year_data
+GROUP BY member_casual;
+
+-- 6. Total Time Spent by Each Rider Group Per Hour:
+SELECT member_casual, hour_of_day, SUM(ride_length_seconds) AS total_time
+FROM full_year_data
+GROUP BY member_casual, hour_of_day;
+
+-- 7. Total Time Spent by Each Rider Group Per Day:
+SELECT member_casual, day_of_week, SUM(ride_length_seconds) AS total_time
+FROM full_year_data
+GROUP BY member_casual, day_of_week;
+
+-- 8. Total Time Spent by Each Rider Group Per Month:
+SELECT member_casual, month, SUM(ride_length_seconds) AS total_time
+FROM full_year_data
+GROUP BY member_casual, month;
+
+-- 9. Annual Time Spent Percentage by Each Rider Group:
+SELECT member_casual, 
+       SUM(ride_length_seconds) / (SELECT SUM(ride_length_seconds) FROM full_year_data) * 100 AS percentage_time
+FROM full_year_data
+GROUP BY member_casual;
+
+-- 10. Total Number of Rides by Each Rider Group Per Hour:
+SELECT member_casual, hour_of_day, COUNT(*) AS total_rides
+FROM full_year_data
+GROUP BY member_casual, hour_of_day;
+
+-- 11. Total Number of Rides by Each Rider Group Per Day:
+SELECT member_casual, day_of_week, COUNT(*) AS total_rides
+FROM full_year_data
+GROUP BY member_casual, day_of_week;
+
+-- 12. Total Number of Rides by Each Rider Group Per Month:
+SELECT member_casual, month, COUNT(*) AS total_rides
+FROM full_year_data
+GROUP BY member_casual, month;
+
+-- 13. Annual Total Rides Percentage by Each Rider Group:
+SELECT member_casual, 
+       COUNT(*) / (SELECT COUNT(*) FROM full_year_data) * 100 AS percentage_rides
+FROM full_year_data
+GROUP BY member_casual;
+
+-- 14. Top 5 Routes for Each Group:
+-- Top 5 routes for Members:
+SELECT start_station_name, end_station_name, COUNT(*) AS route_count
+FROM full_year_data
+WHERE member_casual = 'member'
+GROUP BY start_station_name, end_station_name
+ORDER BY route_count DESC
+LIMIT 5;
+
+-- Top 5 routes for Casual Riders:
+SELECT start_station_name, end_station_name, COUNT(*) AS route_count
+FROM full_year_data
+WHERE member_casual = 'casual'
+GROUP BY start_station_name, end_station_name
+ORDER BY route_count DESC
+LIMIT 5;
