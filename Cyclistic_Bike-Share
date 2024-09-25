@@ -231,7 +231,7 @@ ORDER BY
 	member_casual
 ;
 
--- 3. Average Ride Length by Each Rider Groups Per Day:
+-- 3. Average Ride Length by Each Rider Group Per Day:
 -- SQL Query to calculate average ride length per day by rider group
 SELECT
 	member_casual,
@@ -365,7 +365,7 @@ ORDER BY
 ;
 
 -- 9. Annual Time Spent Percentage by Each Rider Group:
--- SQL Query to calculate percentage of total time spent by rider group
+-- SQL Query to calculate the percentage of total time spent by rider group
 SELECT
 	member_casual,
 	(SUM(ride_length_seconds))/(60*60) AS Total_ride_length_hours
