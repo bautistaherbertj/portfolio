@@ -1,4 +1,5 @@
--- This SQL script includes both the PROCESS PHASE and the ANALYZE PHASE.
+-- This document includes the steps taken for the Process Phase and the Analyze Phase.
+-- It also contains the SQL script used in almost all of its steps.
 
 -- PROCESS PHASE
 
