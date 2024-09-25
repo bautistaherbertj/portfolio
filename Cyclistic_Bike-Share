@@ -16,20 +16,47 @@
 -- Verify column names and data types during the file upload process.
 -- We review column names, types, and null allowances across 12 monthly datasets.
 
--- SQL Query for column verification:
-SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE 
-FROM INFORMATION_SCHEMA.COLUMNS 
-WHERE TABLE_NAME = 'your_table_name';
-
 -- 3. Data Consolidation:
 -- Merge the 12 monthly tables into a single table.
 
 -- SQL Query for data consolidation:
-INSERT INTO full_year_data
-SELECT * FROM january_data
-UNION ALL 
-SELECT * FROM february_data
--- repeat UNION ALL for all 12 months;
+SELECT *
+INTO Cyclistic_TripData_2022
+FROM divvy_tripdata_202201
+UNION ALL
+SELECT *
+FROM divvy_tripdata_202202
+UNION ALL
+SELECT *
+FROM divvy_tripdata_202203
+UNION ALL
+SELECT *
+FROM divvy_tripdata_202204
+UNION ALL
+SELECT *
+FROM divvy_tripdata_202205
+UNION ALL
+SELECT *
+FROM divvy_tripdata_202206
+UNION ALL
+SELECT *
+FROM divvy_tripdata_202207
+UNION ALL
+SELECT *
+FROM divvy_tripdata_202208
+UNION ALL
+SELECT *
+FROM divvy_tripdata_202209
+UNION ALL
+SELECT *
+FROM divvy_tripdata_202210
+UNION ALL
+SELECT *
+FROM divvy_tripdata_202211
+UNION ALL
+SELECT *
+FROM divvy_tripdata_202212
+;
 
 -- 4. Error Detection:
 -- Verify categorical values and check for duplicates.
