@@ -62,8 +62,8 @@ FROM divvy_tripdata_202212
 -- Note: This breakdown will be used in the following step.
 -- Breakdown of the FROM Clause:
 -- cyclistic_bike_share: This is the name of the database that contains your table.
--- dbo: This is the schema within the database. dbo stands for "database owner" and is a common default schema in SQL Server.
--- Cyclistic_TripData_2022: This is the specific table created from the consolidated data, likely containing the bike trip data for the year 2022.
+-- dbo: This is the schema within the database.
+-- Cyclistic_TripData_2022: This is the specific table created from the consolidated data.
 
 -- 4. Error Detection:
 -- Verify categorical values and check for duplicates.
@@ -77,24 +77,46 @@ GROUP BY
 	rideable_type
 ;
 
--- SQL Query for Checking categories for rideable_type:
--- Check distinct categories for rideable_type and member_casual:
-SELECT DISTINCT rideable_type, member_casual FROM full_year_data;
+-- SQL Query for checking categories for member_casual column:
+SELECT 
+	DISTINCT member_casual
+FROM 
+	cyclistic_bike_share.dbo.Cyclistic_TripData_2022
+;
 
--- Check for duplicates in the ride_id column:
-SELECT ride_id, COUNT(*)
-FROM full_year_data
-GROUP BY ride_id
-HAVING COUNT(*) > 1;
+-- SQL Query for checking duplicates in the ride_id column column:
+SELECT
+	ride_id,
+	COUNT(*) as duplicate_count
+FROM 
+	cyclistic_bike_share.dbo.Cyclistic_TripData_2022
+GROUP BY
+	ride_id
+HAVING
+	COUNT(*) > 1
+;
 
 -- 5. Null Value Management:
 -- Analyze and retain records with essential data, despite null values in station columns.
 
--- Check for nulls in station columns:
-SELECT COUNT(*) AS null_count
-FROM full_year_data
-WHERE start_station_name IS NULL OR start_station_id IS NULL 
-   OR end_station_name IS NULL OR end_station_id IS NULL;
+-- Check for null values in all columns:
+SELECT
+   SUM(CASE WHEN ride_id IS NULL THEN 1 ELSE 0 END) AS ride_id_null_count,
+   SUM(CASE WHEN rideable_type IS NULL THEN 1 ELSE 0 END) AS rideable_type_null_count,
+   SUM(CASE WHEN started_at IS NULL THEN 1 ELSE 0 END) AS started_at_null_count,
+   SUM(CASE WHEN ended_at IS NULL THEN 1 ELSE 0 END) AS ended_at_null_count,
+   SUM(CASE WHEN start_station_name IS NULL THEN 1 ELSE 0 END) AS start_station_name_null_count,
+   SUM(CASE WHEN start_station_id IS NULL THEN 1 ELSE 0 END) AS start_station_id_null_count,
+   SUM(CASE WHEN end_station_name IS NULL THEN 1 ELSE 0 END) AS end_station_name_null_count,
+   SUM(CASE WHEN end_station_id IS NULL THEN 1 ELSE 0 END) AS end_station_id_null_count,
+   SUM(CASE WHEN start_lat IS NULL THEN 1 ELSE 0 END) AS start_lat_null_count,
+   SUM(CASE WHEN start_lng IS NULL THEN 1 ELSE 0 END) AS start_lng_null_count,
+   SUM(CASE WHEN end_lat IS NULL THEN 1 ELSE 0 END) AS end_lat_null_count,
+   SUM(CASE WHEN end_lng IS NULL THEN 1 ELSE 0 END) AS end_lng_null_count,
+   SUM(CASE WHEN member_casual IS NULL THEN 1 ELSE 0 END) AS member_casual_null_count
+FROM 
+   cyclistic_bike_share.dbo.Cyclistic_TripData_2022
+;
 
 -- 6. New Column Creation:
 -- Create new columns for enhanced analysis.
