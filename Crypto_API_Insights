@@ -343,7 +343,7 @@ from matplotlib.lines import Line2D
 legend_elements = [Line2D([0], [0], marker='o', color='w', label='Bubble size = quote.USD.price', 
                            markerfacecolor='gray', markersize=10, alpha=0.6)]
 plt.legend(handles=legend_elements, title='Legend', title_fontsize='13', 
-           loc='upper right', bbox_to_anchor=(1, 0.9), fontsize='10')  # Adjusting bbox_to_anchor for lower position
+           loc='upper right', bbox_to_anchor=(1, 0.9), fontsize='10') 
 plt.title('Price vs Price Percent Change (24h) ')
 plt.xlabel('Cryptocurrency')
 plt.ylabel('Percent Change (24h)')
@@ -351,17 +351,177 @@ plt.xticks(rotation=45)
 for label in plt.gca().get_xticklabels():
     label_name = label.get_text()
     if label_name in custom_colors:
-        label.set_color(custom_colors[label_name])  # Set the label color
+        label.set_color(custom_colors[label_name])  
 for i in range(len(x)):
     plt.annotate('', 
                  xy=(x[i], y[i]), 
-                 xytext=(x[i], y[i] + 0.05 * max(y)),  # Start point of the arrow
-                 arrowprops=dict(arrowstyle='->', color='black', lw=1))  # Arrow properties
+                 xytext=(x[i], y[i] + 0.05 * max(y)),  
+                 arrowprops=dict(arrowstyle='->', color='black', lw=1))  
 plt.grid(True)  # Optional: includes a grid for enhanced readability
 plt.tight_layout()  # Adjust layout to prevent clipping
 plt.show()
 
+--Medium-Term Price Changes (7-Day Percent Changes):
+custom_colors = {
+    'Bitcoin': 'red',  
+    'Ethereum': 'blue',
+    'BNB': 'violet',
+    'Solana': 'gray',
+    'USDC': 'orange',
+    'Tether USDt': '#00BFFF',
+    'XRP': 'green',
+    'Dogecoin': 'purple'
+}
+df_top_8_percent_change_7d = df_top_8_percent_change_7d.sort_values(by='cmc_rank_unique_value')
+plt.figure(figsize=(12, 8))
+x = df_top_8_percent_change_7d['name']  
+y = df_top_8_percent_change_7d['quote.USD.percent_change_7d']  
+size = df_top_8_percent_change_7d['quote.USD.price'] * 10 
+plt.scatter(x, y, s=size, alpha=0.6, edgecolors='w', c=[custom_colors[name] for name in x])
+from matplotlib.lines import Line2D
+legend_elements = [Line2D([0], [0], marker='o', color='w', label='Bubble size = quote.USD.price', 
+                           markerfacecolor='gray', markersize=10, alpha=0.6)]
+plt.legend(handles=legend_elements, title='Legend', title_fontsize='13', 
+           loc='upper right', bbox_to_anchor=(1, 0.9), fontsize='10')  
+plt.title('Price vs Price Percent Change (7d)')
+plt.xlabel('Cryptocurrency')
+plt.ylabel('Percent Change (7d)')
+plt.xticks(rotation=45)
+for label in plt.gca().get_xticklabels():
+    label_name = label.get_text()
+    if label_name in custom_colors:
+        label.set_color(custom_colors[label_name])  
+for i in range(len(x)):
+    plt.annotate('', 
+                 xy=(x[i], y[i]), 
+                 xytext=(x[i], y[i] + 0.05 * max(y)),  
+                 arrowprops=dict(arrowstyle='->', color='black', lw=1))  
+plt.grid(True)  
+plt.tight_layout()  
+plt.show()
 
+--Long-Term Price Changes (30-Day Percent Changes)
+custom_colors = {
+    'Bitcoin': 'red',  
+    'Ethereum': 'blue',
+    'BNB': 'violet',
+    'Solana': 'gray',
+    'USDC': 'orange',
+    'Tether USDt': '#00BFFF',
+    'XRP': 'green',
+    'Dogecoin': 'purple'
+}
+df_top_8_percent_change_30d = df_top_8_percent_change_30d.sort_values(by='cmc_rank_unique_value')
+plt.figure(figsize=(12, 8))
+x = df_top_8_percent_change_30d['name']  
+y = df_top_8_percent_change_30d['quote.USD.percent_change_30d']  
+size = df_top_8_percent_change_30d['quote.USD.market_cap'] / 1e6  
+plt.scatter(x, y, s=size, alpha=0.6, edgecolors='w', c=[custom_colors[name] for name in x])
+from matplotlib.lines import Line2D
+legend_elements = [Line2D([0], [0], marker='o', color='w', label='Bubble size = quote.USD.market_cap', 
+                           markerfacecolor='gray', markersize=10, alpha=0.6)]
+plt.legend(handles=legend_elements, title='Legend', title_fontsize='13', 
+           loc='upper right', bbox_to_anchor=(1, 0.5), fontsize='10')  
+plt.title('Market Cap vs Price Percent Change (30d)')
+plt.xlabel('Cryptocurrency')
+plt.ylabel('Percent Change (30d)')
+plt.xticks(rotation=45)
+for label in plt.gca().get_xticklabels():
+    label_name = label.get_text()
+    if label_name in custom_colors:
+        label.set_color(custom_colors[label_name])  
+for i in range(len(x)):
+    plt.annotate('', 
+                 xy=(x[i], y[i]), 
+                 xytext=(x[i], y[i] + 0.05 * max(y)),  
+                 arrowprops=dict(arrowstyle='-|>', color='black', lw=1, 
+                                 connectionstyle='arc3,rad=0.2'))  
+plt.grid(True)  
+plt.tight_layout() 
+plt.show()
+
+--Correlations Among Price Percent Change Metrics
+import seaborn as sns
+import matplotlib.pyplot as plt
+plt.figure(figsize=(8, 6))
+cmap = sns.light_palette("red", as_cmap=True) 
+sns.heatmap(correlation_matrix, annot=True, fmt=".2f", cmap=cmap, center=0, alpha=0.7, cbar_kws={'label': 'Correlation Coefficient'})
+sns.heatmap(correlation_matrix, annot=False, cmap=cmap, alpha=0.2, cbar=False) 
+plt.title('Correlation Heatmap of Price Percent Change Metrics')
+plt.show()
+
+--Price Stability Analysis of USDC and Tether USDt
+--Price percent changes of the 8 cryptocurrencies
+custom_colors = {
+    'Bitcoin': 'red',
+    'Ethereum': 'blue',
+    'BNB': 'violet',
+    'Solana': 'gray',
+    'USDC': 'orange',
+    'Tether USDt': '#00BFFF',
+    'XRP': 'green',
+    'Dogecoin': 'purple'
+}
+stablecoins = df_final[df_final['name'].isin(custom_colors.keys())][[
+    'name', 
+    'quote.USD.percent_change_24h', 
+    'quote.USD.percent_change_7d', 
+    'quote.USD.percent_change_30d', 
+    'quote.USD.percent_change_60d', 
+    'quote.USD.percent_change_90d'
+]].reset_index(drop=True)
+plt.figure(figsize=(12, 10))
+x_values = [1, 7, 30, 60, 90]
+x_labels = ['1d', '7d', '30d', '60d', '90d']
+for crypto in custom_colors:
+    changes = stablecoins.loc[stablecoins['name'] == crypto].iloc[0, 1:].values
+    plt.plot(x_values, changes.tolist(), marker='o', color=custom_colors[crypto], label=f'{crypto} Price Percent Change')
+plt.title('Price Percent Change of Top 8 Cryptocurrencies Ranked by CoinMarketCap')
+plt.xlabel('Days')
+plt.ylabel('Price Percent Change (%)')
+plt.xticks(x_values, x_labels)
+min_value = stablecoins.iloc[:, 1:].min().min()
+max_value = stablecoins.iloc[:, 1:].max().max()
+plt.ylim(min_value - 1, max_value + 1)
+plt.yticks(range(int(min_value - 1), int(max_value + 2)))
+legend = plt.legend(title='Legend')
+legend.get_title().set_fontweight('bold')
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+--focusing on the price percent changes of the stablecoin
+custom_colors = {
+    'USDC': 'orange',
+    'Tether USDt': '#00BFFF'
+}
+stablecoins = df_final[df_final['name'].isin(custom_colors.keys())][[
+    'name', 
+    'quote.USD.percent_change_24h', 
+    'quote.USD.percent_change_7d', 
+    'quote.USD.percent_change_30d', 
+    'quote.USD.percent_change_60d', 
+    'quote.USD.percent_change_90d'
+]].reset_index(drop=True)
+plt.figure(figsize=(12, 10))
+x_values = [1, 7, 30, 60, 90]
+x_labels = ['1d', '7d', '30d', '60d', '90d']
+for crypto in custom_colors:
+    changes = stablecoins.loc[stablecoins['name'] == crypto].iloc[0, 1:].values
+    plt.plot(x_values, changes.tolist(), marker='o', color=custom_colors[crypto], label=f'{crypto} Price Percent Change')
+plt.title('Price Percent Change of USDC and Tether USDt Over Time')
+plt.xlabel('Days')
+plt.ylabel('Price Percent Change (%)')
+plt.xticks(x_values, x_labels)
+min_value = stablecoins.iloc[:, 1:].min().min()
+max_value = stablecoins.iloc[:, 1:].max().max()
+plt.ylim(min_value - 1, max_value + 1)
+plt.yticks(range(int(min_value - 1), int(max_value + 2)))
+legend = plt.legend(title='Legend')
+legend.get_title().set_fontweight('bold')
+plt.grid(True)
+plt.tight_layout()
+plt.show()
 
 
 
