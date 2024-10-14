@@ -202,4 +202,50 @@ df_top_8_supply = df_final.nlargest(8, 'total_supply')
 print(df_top_8_supply[['name', 'total_supply', 'infinite_supply_unique_value', 
                        'quote.USD.price']])
 
+---SHARE PHASE---
+
+--Circulating Supply and Price
+import matplotlib.pyplot as plt
+custom_colors = {
+    'Bitcoin': 'red',
+    'Ethereum': 'blue',
+    'BNB': 'violet',
+    'Solana': 'gray',
+    'USDC': 'orange',
+    'Tether USDt': '#00BFFF',
+    'XRP': 'green',
+    'Dogecoin': 'purple'
+}
+df_top_8_circulating_supply = df_top_8_circulating_supply.drop_duplicates(subset='name')
+df_top_8_circulating_supply = df_top_8_circulating_supply.sort_values(by='cmc_rank_unique_value')
+df_top_8_circulating_supply = df_top_8_circulating_supply.reset_index(drop=True)
+plt.figure(figsize=(12, 8))
+x = df_top_8_circulating_supply['name']  
+y = df_top_8_circulating_supply['circulating_supply']  
+size = df_top_8_circulating_supply['quote.USD.price'] * 10  
+scatter = plt.scatter(x, y, s=size, alpha=0.6, edgecolors='w', c=[custom_colors[name] for name in x])
+from matplotlib.lines import Line2D
+legend_elements = [Line2D([0], [0], marker='o', color='w', label='Bubble size = quote.USD.price', 
+                           markerfacecolor='gray', markersize=10, alpha=0.6)]
+plt.legend(handles=legend_elements, title='Legend', title_fontsize='13', 
+           loc='upper right', bbox_to_anchor=(1, 0.9), fontsize='10') 
+plt.title('Circulating Supply vs Price')
+plt.xlabel('Cryptocurrency')
+plt.ylabel('Circulating Supply')
+plt.xticks(ticks=range(len(x)), labels=x, rotation=45) 
+for label in plt.gca().get_xticklabels():
+    label_name = label.get_text()
+    if label_name in custom_colors:
+        label.set_color(custom_colors[label_name])  
+for i in range(len(x)):
+    plt.annotate('',
+                 xy=(x.iloc[i], y.iloc[i]), 
+                 xytext=(x.iloc[i], y.iloc[i] + 0.05 * max(y)),
+                 arrowprops=dict(arrowstyle='->', color='black', lw=1))
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+
+
 
