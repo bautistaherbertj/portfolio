@@ -1,8 +1,9 @@
-# Getting the API and setting it up
+---PROCESS PHASE---
+
+-- Modifying the Default Script
 from requests import Request, Session
 from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
 import json
-
 url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest'
 parameters = {
   'start':'1',
@@ -13,14 +14,192 @@ headers = {
   'Accepts': 'application/json',
   'X-CMC_PRO_API_KEY': 'Insert Your Personalized API Key',
 }
-
 session = Session()
 session.headers.update(headers)
-
 try:
   response = session.get(url, params=parameters)
   data = json.loads(response.text)
   print(data)
 except (ConnectionError, Timeout, TooManyRedirects) as e:
   print(e)
+
+--Checking the Output Type
+type(data)
+
+--importing library
+import pandas as pd
+
+--Transforming the Data
+pd.json_normalize(data['data'])
+
+--Checking All Columns
+pd.set_option('display.max_columns',None)
+
+--Setting Up Automated API Data Extraction
+import os
+import json
+import pandas as pd
+from requests import Session
+from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
+from time import sleep
+def api_runner():
+    global df
+    url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest' 
+    parameters = {
+      'start':'1',
+      'limit':'8',
+      'convert':'USD'
+    }
+    headers = {
+      'Accepts': 'application/json',
+      'X-CMC_PRO_API_KEY': 'Insert Your Personalized API Key',
+    }
+    session = Session()
+    session.headers.update(headers)
+    try:
+        response = session.get(url, params=parameters)
+        if response.status_code != 200:
+            print(f"API request failed with status code {response.status_code}")
+            print(f"Response text: {response.text}")
+            return  # Exit if there's an issue with the request
+        data = json.loads(response.text)
+        if 'data' not in data:
+            print("Key 'data' not found in the API response.")
+            print(f"Response content: {data}")  # Print the full response for debugging
+            return
+    except (ConnectionError, Timeout, TooManyRedirects) as e:
+        print(e)
+        return  # Exit the function if there's an error
+    df2 = pd.json_normalize(data['data'])
+    df2['Timestamp'] = pd.to_datetime('now')
+    if os.path.isfile(r'C:\Users\Admin\Documents\Data Analyst\Case Study\Cryptocurrency Project\API.csv'):
+        existing_df = pd.read_csv(r'C:\Users\Admin\Documents\Data Analyst\Case Study\Cryptocurrency Project\API.csv')
+        df2 = df2[~df2['name'].isin(existing_df['name'])]
+    if 'df' in globals():
+        df = pd.concat([df, df2], ignore_index=True)
+    else:
+        df = df2  # Create df if it doesn't exist
+    if not os.path.isfile(r'C:\Users\Admin\Documents\Data Analyst\Case Study\Cryptocurrency Project\API.csv'):
+        df.to_csv(r'C:\Users\Admin\Documents\Data Analyst\Case Study\Cryptocurrency Project\API.csv', index=False)
+    else:
+        df.to_csv(r'C:\Users\Admin\Documents\Data Analyst\Case Study\Cryptocurrency Project\API.csv', mode='a', header=False, index=False)
+for i in range(333):
+    api_runner()
+    print('API Runner Completed Successfully')
+    sleep(60)
+
+--Loading the Saved Data
+df = pd.read_csv(r'C:\Users\Admin\Documents\Data Analyst\Case Study\Cryptocurrency Project\API.csv')
+
+--Adjusting Number Display for Clarity
+pd.set_option('display.float_format', lambda x: '%.5f' % x)
+
+--Verifying Data Extraction
+df = df.drop(columns='timestamp')
+pd.set_option('display.max_columns',None)
+pd.set_option('display.max_rows',None)
+
+--Deleting Unnecessary Columns
+columns_to_remove = [
+    'id',
+    'slug',
+    'tags',
+    'num_market_pairs',
+    'date_added',
+    'max_supply',
+    'platform.id',
+    'platform.slug',
+    'platform.token_address',
+    'self_reported_circulating_supply',
+    'self_reported_market_cap',
+    'tvl_ratio',
+    'quote.USD.last_updated',
+    'platform.name',
+    'platform.symbol',
+    'last_updated',
+    'quote.USD.market_cap_dominance'
+]
+df_cleaned = df.drop(columns=columns_to_remove)
+
+--Finding Null Values:
+null_summary = df_cleaned.isnull().sum()
+null_summary_df = null_summary.reset_index()
+null_summary_df.columns = ['Column Name', 'Null Count']
+print(null_summary_df)
+
+--Removing Irrelevant Columns
+df_cleaned = df_cleaned.drop(columns=['platform', 'quote.USD.tvl'])
+
+--Removing Timestamp Column
+df_cleaned = df_cleaned.drop(columns='Timestamp')
+
+Calculating Mean Values for Numeric Columns
+df_mean = df.groupby('name', sort=False)[['circulating_supply', 'total_supply', 'quote.USD.price', 'quote.USD.volume_24h', 'quote.USD.volume_change_24h','quote.USD.percent_change_1h','quote.USD.percent_change_24h','quote.USD.percent_change_7d','quote.USD.percent_change_30d','quote.USD.percent_change_60d','quote.USD.percent_change_90d', 'quote.USD.market_cap', 'quote.USD.fully_diluted_market_cap']].mean()
+df_mean
+
+Analyzing Unique Values in Non-Numeric Columns and CMC Rank
+result = df.groupby('name').agg(
+    cmc_rank_unique_value=('cmc_rank', lambda x: x.unique()[0] if len(x.unique()) == 1 else None),
+    infinite_supply_unique_value=('infinite_supply', lambda x: x.unique()[0] if len(x.unique()) == 1 else None),
+    symbol_unique_value=('symbol', lambda x: x.unique()[0] if len(x.unique()) == 1 else None)
+).reset_index()
+result = result.sort_values(by='cmc_rank_unique_value', ascending=True)
+result_json = result.to_json(orient='records')
+print(result)
+
+--Merging Final Datasets	
+df_final = pd.merge(df_mean, result, on='name')
+
+---ANALYZE PHASE---
+
+--Analyze the Relationship Between Circulating Supply and Price
+df_top_8_circulating_supply = df_final.nlargest(8, 'quote.USD.price')
+print(df_top_8_circulating_supply[['name', 'circulating_supply', 'quote.USD.price']])
+
+--Analyze the Correlation Between Market Cap and Price
+df_top_8_market_cap = df_final.nlargest(8, 'quote.USD.market_cap')
+print(df_top_8_market_cap[['name', 'quote.USD.market_cap', 'quote.USD.price']])
+
+--Analyze the Relationship Between Trading Volume (24h) and Price
+df_top_8_volume = df_final.nlargest(8, 'quote.USD.volume_24h')
+print(df_top_8_volume[['name', 'quote.USD.volume_24h', 'quote.USD.price']])
+
+--Analyze Short-Term Price Movements
+df_top_8_percent_change_24h = df_final.nlargest(8, 'quote.USD.percent_change_24h')
+print(df_top_8_percent_change_24h[['name', 'quote.USD.price', 'quote.USD.percent_change_24h']])
+
+--Analyze 7-Day Percent Changes in USD Price
+df_top_8_percent_change_7d = df_final.nlargest(8, 'quote.USD.percent_change_7d')
+print(df_top_8_percent_change_7d[['name', 'quote.USD.price', 'quote.USD.percent_change_7d']])
+
+--Analyze the Relationship Between Market Cap and 30-Day Percent Change
+df_top_8_percent_change_30d = df_final.nlargest(8, 'quote.USD.percent_change_30d')
+print(df_top_8_percent_change_30d[['name', 'quote.USD.market_cap', 'quote.USD.percent_change_30d']])
+
+--Analyze 60-Day Percent Changes in Price
+df_top_8_percent_change_60d = df_final.nlargest(8, 'quote.USD.percent_change_60d')
+print(df_top_8_percent_change_60d[['name', 'quote.USD.price', 'quote.USD.percent_change_60d']])
+
+--Analyze the Relationship Between Price and Fully Diluted Market Cap
+df_top_8_fully_diluted_market_cap = df_final.nlargest(8, 'quote.USD.fully_diluted_market_cap')
+print(df_top_8_fully_diluted_market_cap[['name', 'quote.USD.price', 'quote.USD.fully_diluted_market_cap']])
+
+--Analyze the Relationship Between Volume Change (24h) and Price Percent Change (24h)
+df_top_8_volume_change = df_final.nlargest(8, 'quote.USD.volume_change_24h')
+print(df_top_8_volume_change[['name', 'quote.USD.volume_change_24h', 'quote.USD.percent_change_24h']])
+
+--Analyze Correlations Among Price Percent Change Metrics
+correlation_matrix = df_final[['quote.USD.percent_change_1h', 
+                                'quote.USD.percent_change_24h', 
+                                'quote.USD.percent_change_7d', 
+                                'quote.USD.percent_change_30d', 
+                                'quote.USD.percent_change_60d', 
+                                'quote.USD.percent_change_90d']].corr()
+print(correlation_matrix)
+
+--Analyze the Relationship Between Price, Total Supply, and Infinite Supply Status
+df_top_8_supply = df_final.nlargest(8, 'total_supply')
+print(df_top_8_supply[['name', 'total_supply', 'infinite_supply_unique_value', 
+                       'quote.USD.price']])
+
 
